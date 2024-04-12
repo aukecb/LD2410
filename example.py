@@ -1,29 +1,30 @@
 from LD2410 import *
+# from .LD2450 import *
 import logging
 import time
 
 
 def main():
-    radar = LD2410("/dev/ttyUSB0", PARAM_BAUD_460800, verbosity=logging.DEBUG) # Set desired level of verbosity [DEBUG, INFO, WARNING]
+    radar = LD2450("/dev/ttyUSB0", PARAM_BAUD_256000, verbosity=logging.DEBUG) # Set desired level of verbosity [DEBUG, INFO, WARNING]
     
     # Get Radar Firmware version
     fw_ver = radar.read_firmware_version()
     print(fw_ver)
 
     # Set max detection gate for moving to 2, static to 3, and empty timeout to 1s
-    radar.edit_detection_params(2, 3, 1)
+    # radar.edit_detection_params(2, 3, 1)
 
     # Set the gate 3 moving energy sentivity to 50 and static sensitivity to 40
     # Note: Static sensitivity cannot be set for gate 1 and 2, it must be set to zero e.g (1, 50, 0)
-    radar.edit_gate_sensitivity(3, 50, 40)
+    # radar.edit_gate_sensitivity(3, 50, 40)
 
     # Retrieve the set detection parameters
     # Returns 3 arrays 
     # 1. Gate parameters. we set it earlier to (2, 3, 1)
     # 2. Motion energy sensitivities for gates 0-8 
     # 3. Static energy sensitivities for gates 0-8 
-    detection_params = radar.read_detection_params()
-    print(detection_params)
+    # detection_params = radar.read_detection_params()
+    # print(detection_params)
 
     # Get data in standard mode
 
@@ -36,14 +37,14 @@ def main():
         time.sleep(1)
     # Get data in engineering mode
 
-    radar.enable_engineering_mode()
+    # radar.enable_engineering_mode()
     
     # Get 3 data frames 1s apart. If you use a delay less than 0.1, you will get repeat data
     for _ in range(3):
         print(radar.get_data()) # The right 2 arrays will be blank since we are polling in standard mode
         time.sleep(1)
 
-    radar.disable_engineering_mode()
+    # radar.disable_engineering_mode()
 
     radar.stop() # Stop polling the radar
 

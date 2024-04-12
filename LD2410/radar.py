@@ -193,9 +193,31 @@ class Radar():
 
 
     def get_data(self):
-        logging.debug(f"get_data returning {self.last_detection}")
-        with self._lock:
-            if not self.last_detection:
-                logging.warning("Data is empty, have you started the radar yet?")
-            return self.last_detection
+        raise Exception("Not implemented")
+        # logging.debug(f"get_data returning {self.last_detection}")
+        # with self._lock:
+        #     if not self.last_detection:
+        #         logging.warning("Data is empty, have you started the radar yet?")
+        #     return self.last_detection
 
+    # To be implemented in inherited class
+    def poll_radar(self):
+        raise Exception("Not Implemented!")
+        pass
+
+
+    def start(self):
+        logging.info("Radar polling started")
+        self._worker_thread = threading.Thread(target=self.poll_radar)
+        self._worker_thread.start()
+        self._stop_event.clear()
+        time.sleep(1) # Allow for a 1s init time
+
+
+    def stop(self):
+        if not self._stop_event.is_set():
+            logging.info("Radar polling stopped")
+            self._stop_event.set()
+            self._worker_thread.join()
+        else:
+            logging.debug("Calling stop() but radar isn't running. This is normal.")
