@@ -65,10 +65,7 @@ class LD2450(Radar):
         return ret
 
     def get_data_frame(self):
-        logging.debug("Getting raw CHILD dataframe")
-
         try:
-            # b = self.ser.read_until(bytes.fromhex(REF_DATA_CRC))
             b = self.ser.read_until(b'\x55\xCC')
             b = b.split(b'\xAA\xFF\x03\x00')[1].split(b'\x55\xCC')[0]
             target1 = b[REF_MIN_TARGET1:REF_MAX_TARGET1]

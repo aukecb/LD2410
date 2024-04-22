@@ -88,6 +88,50 @@ class LD2410(Radar):
         
         self.send_command(command)
 
+    # Get Radar Frame
+    def get_data_frame(self):
+        # Keep cycling the buffer until frame starts
+        buffer = Queue(max_size=4)
+        while buffer.byte_str() != bytes.fromhex(REF_READ_HEADER):
+            try:
+                b = self.ser.read()
+            except:
+                self.read_fail_count += 1
+                logging.debug("Serial failed to read data. Trying again")
+                self.read_fail_count += 1
+                if self.read_fail_count > 32:
+                    logging.warning("Serial failed to read data many times in a row. Please check if the baud rate is correct. Hint: Check the firmware version, if it looks weird, it's probably wrong")
+                b = b""
+            buffer.add(b)
+        
+        # Different packet lengths depending on whether engineering mode is on
+        if self.eng_mode:
+            read_len = REF_ENG_MODE_PACKET_LEN
+        else:
+            read_len = REF_NORMAL_PACKET_LEN
+
+        try:
+            ret_candidate = self.ser.read(read_len)
+        except:
+            
+            logging.debug("Serial failed to read data. Skipping this read")
+            return None
+
+        logging.debug(f"get_data_frame() returning {ret_candidate.hex(' ')}")
+
+        # Catch engineering mode not set error
+        if ret_candidate[REF_ENG_CHECK_IDX] == REF_ENG_CHECK and self.eng_mode == False: # Engineering mode is on, but not set in driver
+            logging.warning("Data seems to be in engineering mode format. However, driver isn't set to use parse engineering mode. Setting it now")
+            self.eng_mode = True
+        elif ret_candidate[REF_PACKET_CRC_IDX:] != bytes.fromhex(REF_PACKET_CRC):
+            logging.warning(f'Checksum not correct received this packet {ret_candidate.hex(" ")}')
+            # raise Exception("Checksum of received data is wrong. Data may be corrupted")
+
+        if ret_candidate:
+            self.read_fail_count = 0
+        
+        return ret_candidate
+
 
     # Sets 3 lists (standard, move_energies, static_energies). If engineering mode is disabled, second and third list is empty
     def get_radar_data(self):
@@ -122,4 +166,12 @@ class LD2410(Radar):
             static_energies = [int(byte) for byte in ret[REF_STATIC_GATE_ENERGY_0:REF_STATIC_GATE_ENERGY_8+1]]
 
         return standard_frame, move_energies, static_energies
+
+    def get_data(self):
+        raise Exception("Not implemented!")
     
+    def poll_radar(self):
+        raise Exception("Not implemented!")
+
+    def start(self):
+        raise Exception("Not implemented!")

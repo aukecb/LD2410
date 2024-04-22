@@ -149,56 +149,11 @@ class Radar():
     # Get Radar Frame
     def get_data_frame(self):
         logging.debug("Getting raw dataframe")
-        # Keep cycling the buffer until frame starts
-        buffer = Queue(max_size=4)
-        while buffer.byte_str() != bytes.fromhex(REF_READ_HEADER):
-            try:
-                b = self.ser.read()
-            except:
-                self.read_fail_count += 1
-                logging.debug("Serial failed to read data. Trying again")
-                self.read_fail_count += 1
-                if self.read_fail_count > 32:
-                    logging.warning("Serial failed to read data many times in a row. Please check if the baud rate is correct. Hint: Check the firmware version, if it looks weird, it's probably wrong")
-                b = b""
-            buffer.add(b)
-        
-        # Different packet lengths depending on whether engineering mode is on
-        if self.eng_mode:
-            read_len = REF_ENG_MODE_PACKET_LEN
-        else:
-            read_len = REF_NORMAL_PACKET_LEN
-
-        try:
-            ret_candidate = self.ser.read(read_len)
-        except:
-            
-            logging.debug("Serial failed to read data. Skipping this read")
-            return None
-
-        logging.debug(f"get_data_frame() returning {ret_candidate.hex(' ')}")
-
-        # Catch engineering mode not set error
-        if ret_candidate[REF_ENG_CHECK_IDX] == REF_ENG_CHECK and self.eng_mode == False: # Engineering mode is on, but not set in driver
-            logging.warning("Data seems to be in engineering mode format. However, driver isn't set to use parse engineering mode. Setting it now")
-            self.eng_mode = True
-        elif ret_candidate[REF_PACKET_CRC_IDX:] != bytes.fromhex(REF_PACKET_CRC):
-            logging.warning(f'Checksum not correct received this packet {ret_candidate.hex(" ")}')
-            # raise Exception("Checksum of received data is wrong. Data may be corrupted")
-
-        if ret_candidate:
-            self.read_fail_count = 0
-        
-        return ret_candidate
+        raise Exception("Not implemented!")
 
 
     def get_data(self):
         raise Exception("Not implemented")
-        # logging.debug(f"get_data returning {self.last_detection}")
-        # with self._lock:
-        #     if not self.last_detection:
-        #         logging.warning("Data is empty, have you started the radar yet?")
-        #     return self.last_detection
 
     # To be implemented in inherited class
     def poll_radar(self):
